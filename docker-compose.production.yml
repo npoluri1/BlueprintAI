@@ -1,0 +1,129 @@
+# Production Docker Compose for BlueprintAI
+# Usage: docker-compose -f docker-compose.production.yml up -d
+# This provides a complete 24/7 stack including:
+#   - Next.js application (app)
+#   - PostgreSQL database (optional, uncomment to use)
+#   - ChromaDB vector store (optional, uncomment to use)
+#   - Nginx reverse proxy (optional, uncomment to use)
+
+services:
+  # Main Next.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - HOSTNAME=0.0.0.0
+      - PORT=3001
+      # Database (SQLite for simplicity — volume mounted)
+      - DATABASE_URL=file:./prisma/dev.db
+      # Auth
+      - JWT_SECRET=${JWT_SECRET:-change-this-to-a-random-secret-in-production}
+      # AI API Keys (set via .env or environment)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      # Vector Store
+      - CHROMA_URL=http://chromadb:8000
+    volumes:
+      - app-data:/app/prisma
+      - app-data:/app/.next
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - blueprintai-network
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+
+  # Optional: ChromaDB vector store
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma-data
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - chroma-data:/chroma-data
+    restart: unless-stopped
+    profiles:
+      - vector-db
+    networks:
+      - blueprintai-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+
+  # Optional: PostgreSQL database (for multi-user deployments)
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=blueprintai
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-blueprintai_secret}
+      - POSTGRES_DB=blueprintai
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    profiles:
+      - postgres
+    networks:
+      - blueprintai-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+
+  # Optional: Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    profiles:
+      - full
+    networks:
+      - blueprintai-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+
+volumes:
+  app-data:
+  chroma-data:
+  postgres-data:
+  redis-data:
+
+networks:
+  blueprintai-network:
+    driver: bridge

@@ -11,6 +11,7 @@ model User {
   name      String
   email     String    @unique
   password  String
+  role      String    @default("user")
   createdAt DateTime  @default(now())
   projects  Project[]
   companies Company[]

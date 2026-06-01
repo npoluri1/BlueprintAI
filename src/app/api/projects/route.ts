@@ -14,8 +14,18 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
+    // Check if user is admin
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { role: true },
+    })
+    const isAdmin = user?.role === "admin"
+
+    // Admins can see ALL projects; regular users only see their own
+    const whereFilter = isAdmin ? {} : { userId: payload.userId }
+
     const projects = await prisma.project.findMany({
-      where: { userId: payload.userId },
+      where: whereFilter,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -32,7 +42,7 @@ export async function GET(req: Request) {
       techStack: JSON.parse(p.techStack),
     }))
 
-    return NextResponse.json({ projects: parsed })
+    return NextResponse.json({ projects: parsed, isAdmin })
   } catch (err) {
     console.error("Projects error:", err)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

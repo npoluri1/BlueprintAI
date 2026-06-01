@@ -120,7 +120,7 @@ export default function CompaniesPage() {
   if (loading || fetching) return <div className="flex min-h-[60vh] items-center justify-center"><div className="text-zinc-400">Loading...</div></div>
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">AI Companies</h1>
@@ -164,7 +164,7 @@ export default function CompaniesPage() {
           <button onClick={() => setShowCreate(true)} className="mt-3 text-sm font-medium text-blue-600 hover:underline">Create your first AI company</button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {companies.map(c => (
             <div key={c.id} className="group relative rounded-xl border border-zinc-200 p-5 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:hover:border-zinc-700">
               {editingId === c.id ? (

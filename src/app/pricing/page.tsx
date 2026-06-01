@@ -62,8 +62,8 @@ export default function PricingPage() {
   const filtered = (plans || []).filter(p => p.category === tab)
 
   return (
-    <div className="min-h-screen px-6 py-24">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen px-6 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl lg:max-w-7xl">
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Choose Your Plan</h1>
           <p className="mx-auto mt-4 max-w-3xl text-lg text-zinc-600 dark:text-zinc-400">
@@ -104,7 +104,7 @@ export default function PricingPage() {
             </div>
           </div>
         ) : (
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((plan) => (
               <div key={plan.id} className={`relative flex flex-col rounded-2xl border p-6 transition hover:shadow-lg dark:border-zinc-800 ${plan.popular ? "border-zinc-900 ring-2 ring-zinc-900 dark:border-zinc-100 dark:ring-zinc-100 scale-105" : "border-zinc-200"} ${plan.price === 0 ? "bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900 dark:to-zinc-950" : ""}`}>
                 {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-zinc-900 px-4 py-1 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">Most Popular</span>}

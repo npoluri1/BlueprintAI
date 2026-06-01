@@ -543,6 +543,8 @@ export default function BuilderPage() {
   const [generating, setGenerating] = useState(false)
   const [project, setProject] = useState<ProjectResult | null>(null)
   const [exporting, setExporting] = useState<"zip" | null>(null)
+  const [streamProgress, setStreamProgress] = useState<string>("")
+  const [streamModel, setStreamModel] = useState<string>("")
   const [industry, setIndustry] = useState("all")
   const [category, setCategory] = useState("All")
   const [techStack, setTechStack] = useState("")
@@ -566,6 +568,46 @@ export default function BuilderPage() {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  // Load project from ?project= query param (using location.search to avoid Suspense boundary requirement)
+  useEffect(() => {
+    if (!user) return
+    const params = new URLSearchParams(window.location.search)
+    const projectId = params.get("project")
+    if (!projectId) return
+
+    setMessages(prev => [...prev, { role: "assistant", content: "Loading project..." }])
+
+    fetch(`/api/projects/${projectId}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.id) return
+        const p: ProjectResult = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          techStack: data.techStack || [],
+          structure: data.structure || [],
+          files: data.files || [],
+          createdAt: data.createdAt,
+        }
+        setProject(p)
+        const contents: Record<string, string> = {}
+        p.files.forEach((f: GeneratedFile) => { contents[f.path] = f.content })
+        setFileContents(contents)
+        setActiveFileTab(p.files[0]?.path || "")
+        setActiveViewTab("files")
+        setPreviewUrl(null)
+
+        setMessages([
+          { role: "assistant", content: `## ${p.title}\n\n${p.description}\n\n**Tech Stack:** ${p.techStack.join(", ")}\n\n**Structure:** ${(p.structure || []).length} files loaded\n\nThis project is ready to view! Download as ZIP or browse the files below.` },
+        ])
+      })
+      .catch(err => {
+        console.error("Failed to load project:", err)
+        setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: "Failed to load project. It may have been deleted or you may not have access." }])
+      })
+  }, [user])
 
   const availableCategories = CATEGORIES[industry] || CATEGORIES.all
   const currentCategoryValue = availableCategories.some(c => c.value === category) ? category : "All"
@@ -608,40 +650,83 @@ export default function BuilderPage() {
     setGenerating(true)
     setProject(null)
 
-    setMessages(prev => [...prev, { role: "assistant", content: "Analyzing your requirements and generating your project..." }])
+    setMessages(prev => [...prev, { role: "assistant", content: `🤖 Generating with enterprise AI...` }])
+    setStreamProgress("")
+    setStreamModel("")
 
     try {
+      // Use streaming for real-time generation
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: fullPrompt, category: categoryLabel || industryLabel, techStack: effectiveStack }),
+        body: JSON.stringify({
+          prompt: fullPrompt,
+          category: categoryLabel || industryLabel,
+          techStack: effectiveStack,
+          modelTier: effectiveModelTier,
+          stream: true,
+        }),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: "Generation failed" }))
         setMessages(prev => [
           ...prev.slice(0, -1),
-          { role: "assistant", content: `Error: ${data.error}` },
+          { role: "assistant", content: `Error: ${errData.error}` },
         ])
         return
       }
 
-      setProject(data)
-      const contents: Record<string, string> = {}
-      data.files.forEach((f: GeneratedFile) => { contents[f.path] = f.content })
-      setFileContents(contents)
-      setActiveFileTab(data.files[0]?.path || "")
-      setActiveViewTab("files")
-      setPreviewUrl(null)
+      // Read SSE stream
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error("No response body")
 
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        {
-          role: "assistant",
-          content: `## ${data.title}\n\n${data.description}\n\n**Tech Stack:** ${(data.techStack || []).join(", ")}\n\n**Structure:** ${(data.structure || []).length} files generated\n\nYour project is ready! You can download it as a ZIP or view the files below.`,
-        },
-      ])
+      const decoder = new TextDecoder()
+      let buffer = ""
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          try {
+            const data = JSON.parse(line.slice(6))
+
+            if (data.type === "model") {
+              setStreamModel(data.model)
+              setMessages(prev => [
+                ...prev.slice(0, -1),
+                { role: "assistant", content: `🤖 Using ${data.model} (${data.tier}) — generating your project...` },
+              ])
+            } else if (data.type === "chunk") {
+              setStreamProgress(prev => prev + data.content)
+            } else if (data.type === "complete") {
+              const p = data.project
+              setProject(p)
+              const contents: Record<string, string> = {}
+              p.files?.forEach((f: GeneratedFile) => { if (f?.path) contents[f.path] = f.content })
+              setFileContents(contents)
+              setActiveFileTab(p.files?.[0]?.path || "")
+              setActiveViewTab("files")
+              setPreviewUrl(null)
+
+              const modelLabel = data.model ? ` via ${data.model}` : ""
+              setMessages([
+                {
+                  role: "assistant",
+                  content: `## ${p.title}${modelLabel}\n\n${p.description}\n\n**Tech Stack:** ${(p.techStack || []).join(", ")}\n\n**Structure:** ${(p.structure || []).length} files generated\n\nYour project is ready! You can download it as a ZIP or browse the files below.`,
+                },
+              ])
+              break
+            }
+          } catch {}
+        }
+      }
     } catch {
       setMessages(prev => [
         ...prev.slice(0, -1),
@@ -649,6 +734,8 @@ export default function BuilderPage() {
       ])
     } finally {
       setGenerating(false)
+      setStreamProgress("")
+      setStreamModel("")
     }
   }
 
@@ -1056,7 +1143,7 @@ export default function BuilderPage() {
       </div>
 
       {/* Row 1: Industry + Category + Model Tier + Country + AI Adoption */}
-      <div className="mb-2 grid gap-3 sm:grid-cols-5">
+      <div className="mb-2 grid gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5">
         <div className="relative">
           <label className="mb-1.5 block text-xs font-medium text-zinc-500 uppercase tracking-wider">Industry</label>
           <select

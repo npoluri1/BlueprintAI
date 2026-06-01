@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "@/components/Navbar";
 import ChatAssistant from "@/components/ChatAssistant";
 
@@ -26,8 +27,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('blueprintai-theme');
+                  if (!theme) theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  if (theme === 'dark') document.documentElement.classList.add('dark');
+                  else document.documentElement.classList.remove('dark');
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17695929412"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -40,11 +55,13 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 min-h-screen">
+      <body className="bg-white text-zinc-900 min-h-screen transition-colors">
         <AuthProvider>
-          <Navbar />
-          {children}
-          <ChatAssistant />
+          <ThemeProvider>
+            <Navbar />
+            {children}
+            <ChatAssistant />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

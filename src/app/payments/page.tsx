@@ -49,8 +49,8 @@ function PaymentsContent() {
   }
 
   return (
-    <div className="min-h-screen px-6 py-24">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-screen px-6 py-16 sm:py-24">
+      <div className="mx-auto max-w-4xl lg:max-w-5xl">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Payments</h1>

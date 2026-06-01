@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for Tailwind v4 */
+/* This makes the `dark:` variant match when `.dark` is on the <html> element */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,21 +21,32 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Smooth theme transitions */
 html {
   scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme-aware elements */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: ease;
+  transition-duration: 200ms;
+}
+
+/* Exclude transitions from elements that shouldn't animate */
+.no-theme-transition,
+.no-theme-transition *,
+.no-theme-transition::before,
+.no-theme-transition::after {
+  transition: none !important;
 }
 
 @keyframes fadeInUp {
@@ -38,6 +58,16 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .animate-fade-in-up {
@@ -57,4 +87,39 @@ body {
 .animate-fade-in-up-delay-3 {
   animation: fadeInUp 0.6s ease-out 0.3s forwards;
   opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+/* Responsive container helpers */
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+  }
+}
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+  }
+}
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+  }
+}
+@media (min-width: 1536px) {
+  .container-responsive {
+    max-width: 1440px;
+  }
 }

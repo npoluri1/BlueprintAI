@@ -238,78 +238,8 @@ export function getAgentSystemPrompt(role: string, companyName: string, companyD
   return `${def.systemPrompt}\n\nYou work at **${companyName}**, a company described as: ${companyDescription}\nAlways represent your role and contribute to discussions from your unique perspective.`
 }
 
-export const INDUSTRY_ROLES: Record<string, string[]> = {
-  Technology: [
-    "CEO","CFO","CTO","COO","CMO","CIO","CPO",
-    "VP Engineering","Data Scientist","ML Engineer","Software Engineer","Product Manager",
-    "UX Designer","DevOps Engineer","Security Engineer",
-  ],
-  Mobile: [
-    "CEO","CFO","CTO","COO","CMO","CIO","CPO",
-    "VP Engineering","Data Scientist","ML Engineer","Software Engineer","Product Manager",
-    "UX Designer","DevOps Engineer","Security Engineer",
-  ],
-  Web: [
-    "CEO","CFO","CTO","COO","CMO","CIO","CPO",
-    "VP Engineering","Data Scientist","ML Engineer","Software Engineer","Product Manager",
-    "UX Designer","DevOps Engineer","Security Engineer",
-  ],
-  "Enterprise Software": [
-    "CEO","CFO","CTO","COO","CMO","CIO","CPO",
-    "VP Engineering","Data Scientist","ML Engineer","Software Engineer","Product Manager",
-    "UX Designer","DevOps Engineer","Security Engineer",
-  ],
-  FinTech: [
-    "CEO","CFO","COO","CTO","CMO","CIO",
-    "VP Engineering","Data Scientist","Security Engineer","Software Engineer","Product Manager",
-    "DevOps Engineer",
-  ],
-  "HealthTech / Biotech": [
-    "CEO","CFO","COO","CTO","CMO","CIO",
-    "Data Scientist","ML Engineer","Software Engineer","Product Manager","Security Engineer",
-    "DevOps Engineer",
-  ],
-  "Robotics / Hardware": [
-    "CEO","CFO","CTO","COO","CIO","CPO",
-    "VP Engineering","Data Scientist","ML Engineer","Software Engineer","DevOps Engineer",
-  ],
-  "Quantum Computing": [
-    "CEO","CFO","CTO","COO","CIO",
-    "Data Scientist","ML Engineer","Software Engineer",
-  ],
-  "Semiconductor / Chip Design": [
-    "CEO","CFO","CTO","COO","CIO",
-    "Data Scientist","ML Engineer","Software Engineer","DevOps Engineer",
-  ],
-  "IoT / Embedded Systems": [
-    "CEO","CFO","CTO","COO","CIO","CPO",
-    "Data Scientist","ML Engineer","Software Engineer","DevOps Engineer","Security Engineer",
-  ],
-  "Blockchain / Web3": [
-    "CEO","CFO","CTO","COO","CMO","CIO","CPO",
-    "Software Engineer","DevOps Engineer","Security Engineer",
-  ],
-  "Game Development": [
-    "CEO","CFO","CTO","COO","CMO","CPO",
-    "VP Engineering","Software Engineer","UX Designer","Product Manager",
-  ],
-  "AR / VR": [
-    "CEO","CFO","CTO","COO","CPO",
-    "Data Scientist","ML Engineer","Software Engineer","UX Designer","Product Manager",
-  ],
-  "Data Engineering / Analytics": [
-    "CEO","CFO","CTO","COO","CIO",
-    "Data Scientist","ML Engineer","Software Engineer","DevOps Engineer",
-  ],
-  "DevOps / Cloud Infrastructure": [
-    "CEO","CFO","CTO","COO","CIO",
-    "Data Scientist","ML Engineer","Software Engineer","DevOps Engineer","Security Engineer",
-  ],
-}
 
-export function getRolesForIndustry(industry: string): AgentRoleDef[] {
-  const roleNames = INDUSTRY_ROLES[industry] || INDUSTRY_ROLES.Technology
-  return roleNames
-    .map(name => DEFAULT_AGENT_ROLES.find(r => r.role === name))
-    .filter((r): r is AgentRoleDef => r !== undefined)
+export function getRolesForIndustry(_industry: string): AgentRoleDef[] {
+  // Every industry gets all 16 default agent roles for a complete org
+  return [...DEFAULT_AGENT_ROLES]
 }

@@ -1,0 +1,18 @@
+# Development Dockerfile
+# docker build -f Dockerfile.dev -t blueprintai:dev .
+# docker run -p 3001:3001 -v ${PWD}:/app blueprintai:dev
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++ git
+
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
+
+COPY . .
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev:http"]

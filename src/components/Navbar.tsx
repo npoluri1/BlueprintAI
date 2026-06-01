@@ -2,11 +2,13 @@
 
 import Link from "next/link"
 import { useAuth } from "@/app/context/AuthContext"
+import { useTheme } from "@/app/context/ThemeContext"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function Navbar() {
   const { user, loading, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -18,7 +20,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-        <Link href="/" className="text-xl font-bold tracking-tight sm:text-2xl">
+        <Link href="/" className="mr-6 shrink-0 text-xl font-bold tracking-tight sm:text-2xl">
           Blueprint<span className="text-blue-600">AI</span>
         </Link>
 
@@ -49,6 +51,28 @@ export default function Navbar() {
               Payments
             </Link>
           )}
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all duration-300 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            <span
+              className="inline-block transition-transform duration-500 ease-in-out"
+              style={{ transform: theme === "dark" ? "rotate(360deg)" : "rotate(0deg)" }}
+            >
+              {theme === "dark" ? (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" />
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </span>
+          </button>
           <span className="text-zinc-300 dark:text-zinc-600">|</span>
           <Link href="/company" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
             AI Company
@@ -94,6 +118,25 @@ export default function Navbar() {
       {menuOpen && (
         <div className="border-t border-zinc-200 bg-white px-6 pb-4 pt-2 md:hidden dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex flex-col gap-3 text-sm">
+            {/* Mobile Theme Toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Theme</span>
+              <button
+                onClick={toggleTheme}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-all"
+              >
+                {theme === "dark" ? (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                )}
+              </button>
+            </div>
             <Link href="/pricing" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">Pricing</Link>
             <Link href="/payments" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">Payments</Link>
             <Link href="/company" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">AI Company</Link>

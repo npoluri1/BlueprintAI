@@ -19,6 +19,7 @@ export default function ProjectsPage() {
   const router = useRouter()
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [fetching, setFetching] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ title: "", description: "", techStack: "" })
 
@@ -34,6 +35,7 @@ export default function ProjectsPage() {
       .then(r => r.json())
       .then(data => {
         if (data.projects) setProjects(data.projects)
+        if (data.isAdmin) setIsAdmin(true)
       })
       .catch(console.error)
       .finally(() => setFetching(false))
@@ -83,12 +85,20 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">My Projects</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">My Projects</h1>
+            {isAdmin && (
+              <span className="rounded-full bg-amber-100 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                👑 Admin
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-zinc-500">
             {projects.length} project{projects.length !== 1 ? "s" : ""} generated
+            {isAdmin && <span className="text-zinc-400"> &middot; Viewing all projects</span>}
           </p>
         </div>
         <Link
@@ -107,7 +117,7 @@ export default function ProjectsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {projects.map(p => (
             <div
               key={p.id}
