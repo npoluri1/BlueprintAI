@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  projects  Project[]
+  companies Company[]
+  orders    Order[]
+  subscriptions Subscription[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  prompt      String
+  techStack   String
+  files       String   @default("[]")
+  structure   String   @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Company {
+  id          String         @id @default(uuid())
+  name        String
+  description String
+  industry    String         @default("Technology")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  agents      CompanyAgent[]
+
+  @@index([userId])
+}
+
+model CompanyAgent {
+  id         String           @id @default(uuid())
+  role       String
+  name       String
+  emoji      String           @default("🤖")
+  systemPrompt String
+  config     String           @default("{}")
+  createdAt  DateTime         @default(now())
+  companyId  String
+  company    Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  messages   AgentMessage[]
+
+  @@index([companyId])
+}
+
+model AgentMessage {
+  id        String   @id @default(uuid())
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  agentId   String
+  agent     CompanyAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+}
+
+model Plan {
+  id             String       @id @default(uuid())
+  name           String
+  slug           String       @unique
+  description    String
+  price          Float
+  interval       String       @default("month")
+  features       String       @default("[]")
+  category       String       @default("solution")
+  popular        Boolean      @default(false)
+  stripePriceId  String?      @default("")
+  createdAt      DateTime     @default(now())
+  orders         Order[]
+  subscriptions  Subscription[]
+}
+
+model Order {
+  id                  String   @id @default(uuid())
+  amount              Float
+  currency            String   @default("SGD")
+  status              String   @default("pending")
+  planId              String
+  plan                Plan     @relation(fields: [planId], references: [id])
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  solution            String   @default("")
+  description         String   @default("")
+  stripeSessionId     String?  @default("")
+  stripePaymentIntentId String? @default("")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+}
+
+model Subscription {
+  id                  String   @id @default(uuid())
+  status              String   @default("active")
+  planId              String
+  plan                Plan     @relation(fields: [planId], references: [id])
+  userId              String
+  user                User     @relation(fields: [userId], references: [id])
+  stripeSubscriptionId String? @default("")
+  currentPeriodStart  DateTime @default(now())
+  currentPeriodEnd    DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([userId])
+}
