@@ -17,7 +17,137 @@ model User {
   companies Company[]
   orders    Order[]
   subscriptions Subscription[]
+  workspaces Workspace[]
+  workspaceProjects Project_Workspace[]
+  assignedTasks Task[] @relation("TaskAssignee")
 }
+
+// === Workspace Hierarchy (Taskade-style) ===
+
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  icon        String   @default("📁")
+  color       String   @default("#6366f1")
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  folders     Folder[]
+  projects    Project_Workspace[]
+
+  @@index([userId])
+}
+
+model Folder {
+  id          String   @id @default(uuid())
+  name        String
+  icon        String   @default("📂")
+  color       String   @default("#8b5cf6")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projects    Project_Workspace[]
+
+  @@index([workspaceId])
+}
+
+// === Project (Taskade-style: the core work unit) ===
+
+model Project_Workspace {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @default("")
+  icon        String   @default("📄")
+  color       String   @default("#3b82f6")
+  viewType    String   @default("kanban") // kanban, calendar, mindmap, table, list, orgchart
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  folderId    String?
+  folder      Folder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  columns     Column[]
+  tasks       Task[]
+  labels      Label[]
+
+  @@index([workspaceId])
+  @@index([folderId])
+  @@index([userId])
+}
+
+model Column {
+  id        String   @id @default(uuid())
+  title     String
+  color     String   @default("#6b7280")
+  position  Int      @default(0)
+  projectId String
+  project   Project_Workspace @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@index([projectId])
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @default("")
+  priority    String   @default("medium") // low, medium, high, urgent
+  status      String   @default("todo")   // todo, in_progress, done
+  dueDate     DateTime?
+  position    Float    @default(0)
+  assigneeId  String?
+  assignee    User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  columnId    String?
+  column      Column?  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project_Workspace @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  labels      TaskLabel[]
+  comments    Comment[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([columnId])
+  @@index([assigneeId])
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("#3b82f6")
+  projectId String
+  project   Project_Workspace @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     TaskLabel[]
+
+  @@index([projectId])
+}
+
+model TaskLabel {
+  taskId  String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  author    String   @default("User")
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+}
+
+// === Existing Models (kept as-is) ===
 
 model Project {
   id          String   @id @default(uuid())

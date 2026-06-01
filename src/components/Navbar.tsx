@@ -74,6 +74,9 @@ export default function Navbar() {
             </span>
           </button>
           <span className="text-zinc-300 dark:text-zinc-600">|</span>
+          <Link href="/workspace" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
+            Workspace
+          </Link>
           <Link href="/company" className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">
             AI Company
           </Link>
@@ -139,6 +142,7 @@ export default function Navbar() {
             </div>
             <Link href="/pricing" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">Pricing</Link>
             <Link href="/payments" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">Payments</Link>
+            <Link href="/workspace" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">Workspace</Link>
             <Link href="/company" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">AI Company</Link>
             <Link href="/builder" onClick={() => setMenuOpen(false)} className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400">+ New Project</Link>
             {user ? (
