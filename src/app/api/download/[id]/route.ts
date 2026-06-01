@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { verifyToken } from "@/lib/auth"
+import JSZip from "jszip"
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,30 +25,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const files: Array<{ path: string; content: string }> = JSON.parse(project.files)
     const title = project.title.replace(/[^a-zA-Z0-9-_]/g, "-")
 
-    const { default: archiver } = await import("archiver")
+    const zip = new JSZip()
+    for (const file of files) {
+      const cleanPath = file.path.replace(/^\//, "")
+      zip.file(cleanPath, file.content)
+    }
 
-    const archive = archiver("zip", { zlib: { level: 9 } })
-    const chunks: Buffer[] = []
+    const u8 = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 9 } })
+    const buf = Buffer.from(u8)
 
-    await new Promise<void>((resolve, reject) => {
-      archive.on("data", (chunk: Buffer) => chunks.push(chunk))
-      archive.on("close", resolve)
-      archive.on("error", reject)
-
-      for (const file of files) {
-        archive.append(file.content, { name: file.path.replace(/^\//, "") })
-      }
-
-      archive.finalize()
-    })
-
-    const buffer = Buffer.concat(chunks)
-
-    return new NextResponse(buffer, {
+    return new NextResponse(buf, {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${title}.zip"`,
-        "Content-Length": buffer.length.toString(),
+        "Content-Length": buf.length.toString(),
       },
     })
   } catch (err) {

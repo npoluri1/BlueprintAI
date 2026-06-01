@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@/app/context/AuthContext"
 import Link from "next/link"
-import { DEFAULT_AGENT_ROLES, getRolesForIndustry } from "@/lib/agents/roles"
+import { DEFAULT_AGENT_ROLES } from "@/lib/agents/roles"
 
 interface Agent {
   id: string
@@ -130,11 +130,10 @@ export default function CompanyDetailPage() {
     }
   }
 
-  const unusedRoles = () => {
+  const availableRoles = () => {
     if (!company) return []
     const used = new Set(company.agents.map(a => a.role))
-    const available = getRolesForIndustry(company.industry)
-    return available.filter(r => !used.has(r.role))
+    return DEFAULT_AGENT_ROLES.filter(r => !used.has(r.role))
   }
 
   const handleSend = async (e: React.FormEvent) => {
@@ -212,17 +211,17 @@ export default function CompanyDetailPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Organization</h2>
-            {unusedRoles().length > 0 && (
-              <button onClick={() => setShowAddAgent(true)} className="text-xs font-medium text-blue-600 hover:underline">+ Add Employee</button>
-            )}
+            <button onClick={() => setShowAddAgent(true)} className="text-xs font-medium text-blue-600 hover:underline">+ Add Employee</button>
           </div>
 
           {showAddAgent && (
             <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
-              <div className="mb-3 space-y-2">
-                <select value={addAgentForm.role} onChange={e => setAddAgentForm(f => ({ ...f, role: e.target.value }))} className="w-full appearance-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="mb-3 space-y-2">                  <select value={addAgentForm.role} onChange={e => setAddAgentForm(f => ({ ...f, role: e.target.value }))} className="w-full appearance-none rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900">
                   <option value="">Select role...</option>
-                  {unusedRoles().map(r => <option key={r.role} value={r.role}>{r.emoji} {r.role}</option>)}
+                  {availableRoles().length > 0
+                    ? availableRoles().map(r => <option key={r.role} value={r.role}>{r.emoji} {r.role}</option>)
+                    : DEFAULT_AGENT_ROLES.map(r => <option key={r.role} value={r.role}>{r.emoji} {r.role}</option>)
+                  }
                 </select>
                 <input value={addAgentForm.name} onChange={e => setAddAgentForm(f => ({ ...f, name: e.target.value }))} placeholder="Employee name" className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900" />
               </div>

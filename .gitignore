@@ -43,3 +43,9 @@ next-env.d.ts
 /src/generated/prisma
 
 certificates
+
+# local dev database
+dev.db
+*.db
+*.sqlite
+*.sqlite3
