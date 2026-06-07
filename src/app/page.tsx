@@ -13,15 +13,6 @@ const FAQ_DATA = [
   { q: "What kind of support do you provide after delivery?", a: "We provide 24/7 monitoring, weekly performance reports, monthly strategy reviews, and dedicated account management. Our support team is available via email for immediate assistance, plus training sessions for your team." },
 ]
 
-const NAV_ITEMS = [
-  { label: "About", href: "#about" },
-  { label: "Work", href: "#work" },
-  { label: "Strengths", href: "#strengths" },
-  { label: "Services", href: "#services" },
-  { label: "Tech Stack", href: "#tech-stack" },
-  { label: "Contact", href: "#contact" },
-]
-
 const CATEGORIES = ["All", "Mobile Apps", "Web Apps", "AI Agents", "Agentic AI", "AGI", "Quantum AI", "AI Robotics", "AI Semiconductors", "AIoT", "AI + Biotechnology", "AI + Neural Science"] as const
 type Category = (typeof CATEGORIES)[number]
 
@@ -412,7 +403,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   {dbProjects.map((p) => (
-                    <div key={p.id} className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
+                    <Link key={p.id} href={`/builder?project=${p.id}`} className="rounded-xl border border-zinc-200 p-5 transition hover:border-zinc-400 hover:shadow-sm dark:border-zinc-800 dark:hover:border-zinc-600">
                       <h3 className="font-semibold">{p.title}</h3>
                       <p className="mt-1 text-sm text-zinc-600 line-clamp-2 dark:text-zinc-400">{p.description}</p>
                       <div className="mt-3 flex flex-wrap gap-1.5">
@@ -420,7 +411,7 @@ export default function HomePage() {
                           <span key={t} className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">{t}</span>
                         ))}
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -482,15 +473,6 @@ export default function HomePage() {
           </section>
         </>
       )}
-
-      {/* Portfolio sub-navigation */}
-      <section className="sticky top-16 z-40 border-b border-zinc-200 bg-white/80 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/80">
-        <div className="mx-auto flex max-w-5xl items-center gap-6 overflow-x-auto px-6 py-3 text-sm">
-          {NAV_ITEMS.map((item) => (
-            <a key={item.label} href={item.href} className="shrink-0 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100">{item.label}</a>
-          ))}
-        </div>
-      </section>
 
       {/* Hero / Portfolio */}
       <section className="px-6 pb-24 pt-20 text-center">
@@ -701,7 +683,12 @@ export default function HomePage() {
           {/* Project Grid */}
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {filtered.map((project) => (
-              <div key={project.title} className="group relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
+              <Link
+                key={project.title}
+                href={user ? `/builder?input=${encodeURIComponent(`Build a ${project.title} app: ${project.description} using ${project.tags.join(", ")}`)}` : "#"}
+                onClick={(e) => { if (!user) { e.preventDefault(); setShowSignup(true) } }}
+                className="group relative overflow-hidden rounded-2xl border border-zinc-200 transition hover:border-zinc-400 hover:shadow-sm dark:border-zinc-800 dark:hover:border-zinc-600"
+              >
                 <div className={`h-2 bg-gradient-to-r ${project.gradient}`} />
                 <div className="p-6">
                   <div className="flex items-start justify-between">
@@ -726,7 +713,7 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

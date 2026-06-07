@@ -79,32 +79,32 @@ export function TableView({ project, onUpdate }: { project: ProjectData; onUpdat
 
   return (
     <div className="h-full overflow-auto p-4">
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800">
+      <div className="overflow-x-auto rounded-xl border" style={{ borderColor: 'var(--card-border)' }}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
-              <th className="w-8 px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400">#</th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort("title")}>
+            <tr style={{ borderBottom: '1px solid var(--card-border)', background: 'var(--sidebar-bg)' }}>
+              <th className="w-8 px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>#</th>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider cursor-pointer" style={{ color: 'var(--muted)' }} onClick={() => toggleSort("title")}>
                 Title {sortBy === "title" ? "↑" : sortBy === "-title" ? "↓" : ""}
               </th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort("priority")}>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider cursor-pointer" style={{ color: 'var(--muted)' }} onClick={() => toggleSort("priority")}>
                 Priority {sortBy === "priority" ? "↑" : sortBy === "-priority" ? "↓" : ""}
               </th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Assignee</th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Labels</th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Due Date</th>
-              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Comments</th>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Assignee</th>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Labels</th>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Due Date</th>
+              <th className="px-3 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Comments</th>
             </tr>
           </thead>
           <tbody>
             {sorted.map((task, idx) => (
-              <tr key={task.id} className="border-b border-zinc-100 transition hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900">
-                <td className="px-3 py-2.5 text-xs text-zinc-400">{idx + 1}</td>
+              <tr key={task.id} className="transition hover:bg-zinc-50 dark:hover:bg-zinc-900/50" style={{ borderBottom: '1px solid var(--border-light)' }}>
+                <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--muted-light)' }}>{idx + 1}</td>
                 <td className="px-3 py-2.5">
                   {editingCell?.taskId === task.id && editingCell?.field === "title" ? (
-                    <input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={saveEdit} onKeyDown={e => e.key === "Enter" && saveEdit()} className="w-full rounded border border-blue-500 px-2 py-1 text-xs outline-none dark:bg-zinc-800" autoFocus />
+                    <input value={editValue} onChange={e => setEditValue(e.target.value)} onBlur={saveEdit} onKeyDown={e => e.key === "Enter" && saveEdit()} className="w-full rounded border px-2 py-1 text-xs outline-none dark:bg-zinc-800" style={{ borderColor: 'var(--primary)' }} autoFocus />
                   ) : (
-                    <button onClick={() => startEdit(task.id, "title", task.title)} className="text-xs font-medium text-left hover:text-blue-600">
+                    <button onClick={() => startEdit(task.id, "title", task.title)} className="text-xs font-medium text-left hover:text-primary" style={{ color: 'var(--foreground)' }}>
                       {task.title}
                     </button>
                   )}
@@ -114,26 +114,26 @@ export function TableView({ project, onUpdate }: { project: ProjectData; onUpdat
                     {task.priority}
                   </span>
                 </td>
-                <td className="px-3 py-2.5 text-xs text-zinc-500">{task.assignee?.name || "—"}</td>
+                <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--muted)' }}>{task.assignee?.name || "—"}</td>
                 <td className="px-3 py-2.5">
                   <div className="flex flex-wrap gap-1">
                     {task.labels.map(({ label }) => (
-                      <span key={label.id} className="rounded px-1.5 py-0.5 text-[9px] font-medium text-white" style={{ backgroundColor: label.color }}>
+                      <span key={label.id} className="taskade-badge text-white text-[9px]" style={{ backgroundColor: label.color }}>
                         {label.name}
                       </span>
                     ))}
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-xs text-zinc-500">
+                <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--muted)' }}>
                   {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "—"}
                 </td>
-                <td className="px-3 py-2.5 text-xs text-zinc-400">{task._count.comments > 0 ? `💬 ${task._count.comments}` : "—"}</td>
+                <td className="px-3 py-2.5 text-xs" style={{ color: 'var(--muted-light)' }}>{task._count.comments > 0 ? `💬 ${task._count.comments}` : "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-zinc-400">{allTasks.length} tasks in {project.columns?.length || 0} columns</p>
+      <p className="mt-3 text-xs" style={{ color: 'var(--muted-light)' }}>{allTasks.length} tasks in {project.columns?.length || 0} columns</p>
     </div>
   )
 }

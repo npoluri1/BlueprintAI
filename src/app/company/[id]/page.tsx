@@ -39,6 +39,17 @@ const ORG_LAYERS = [
   { label: "People", roles: ["CHRO"] },
 ]
 
+interface WorkspaceOption {
+  id: string
+  name: string
+}
+
+interface CompanyOption {
+  id: string
+  name: string
+  industry: string
+}
+
 export default function CompanyDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user, loading } = useAuth()
@@ -54,6 +65,10 @@ export default function CompanyDetailPage() {
   const [showAddAgent, setShowAddAgent] = useState(false)
   const [addAgentForm, setAddAgentForm] = useState({ role: "", name: "" })
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [allCompanies, setAllCompanies] = useState<CompanyOption[]>([])
+  const [showWsForm, setShowWsForm] = useState(false)
+  const [wsForm, setWsForm] = useState({ name: "", description: "", selectedCompanyId: id })
+  const [wsCreating, setWsCreating] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) router.push(`/login?redirect=/company/${id}`)
@@ -67,6 +82,14 @@ export default function CompanyDetailPage() {
       .catch(console.error)
       .finally(() => setFetching(false))
   }, [user, id])
+
+  useEffect(() => {
+    if (!user) return
+    fetch("/api/company")
+      .then(r => r.json())
+      .then(data => { if (data.companies) setAllCompanies(data.companies.map((c: any) => ({ id: c.id, name: c.name, industry: c.industry }))) })
+      .catch(console.error)
+  }, [user])
 
   useEffect(() => {
     if (!selectedAgent) return
@@ -128,6 +151,26 @@ export default function CompanyDetailPage() {
       setCompany(prev => prev ? { ...prev, agents: prev.agents.filter(a => a.id !== agentId) } : prev)
       if (selectedAgent?.id === agentId) { setSelectedAgent(null); setMessages([]) }
     }
+  }
+
+  const createWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!wsForm.name.trim()) return
+    setWsCreating(true)
+    try {
+      const res = await fetch("/api/workspaces", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: wsForm.name, description: wsForm.description }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.workspace) {
+          router.push(`/workspace/${data.workspace.id}`)
+        }
+      }
+    } catch (err) { console.error("Create workspace error:", err) }
+    setWsCreating(false)
   }
 
   const availableRoles = () => {
@@ -205,6 +248,57 @@ export default function CompanyDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-zinc-400 uppercase tracking-wider mr-2">Quick Actions:</span>
+        <Link href="/builder" className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 transition">
+          + New Project
+        </Link>
+        <button onClick={() => setShowWsForm(!showWsForm)} className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-500 transition">
+          {showWsForm ? "Cancel" : "+ New Workspace"}
+        </button>
+        <Link href="/company" className="rounded-full border border-zinc-300 px-4 py-1.5 text-xs font-medium hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800 transition">
+          + New Company
+        </Link>
+      </div>
+
+      {showWsForm && (
+        <form onSubmit={createWorkspace} className="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+          <h3 className="text-sm font-semibold mb-3">Create Workspace</h3>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs text-zinc-500 mb-1 block">Associated Company</label>
+              <select
+                value={wsForm.selectedCompanyId}
+                onChange={e => setWsForm(f => ({ ...f, selectedCompanyId: e.target.value }))}
+                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900"
+              >
+                {allCompanies.map(c => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.industry})</option>
+                ))}
+              </select>
+            </div>
+            <input
+              required
+              value={wsForm.name}
+              onChange={e => setWsForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="Workspace name"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900"
+            />
+            <textarea
+              value={wsForm.description}
+              onChange={e => setWsForm(f => ({ ...f, description: e.target.value }))}
+              placeholder="Description (optional)"
+              rows={2}
+              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 resize-none"
+            />
+            <button type="submit" disabled={wsCreating} className="rounded-full bg-zinc-900 px-5 py-2 text-xs font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900">
+              {wsCreating ? "Creating..." : "Create Workspace"}
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         {/* Org Chart */}

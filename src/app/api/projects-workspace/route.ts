@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   if (!payload) return NextResponse.json({ error: "Invalid token" }, { status: 401 })
 
   const body = await req.json()
-  const { title, description, icon, color, viewType, workspaceId, folderId } = body
+  const { title, description, icon, color, viewType, workspaceId, folderId, generatedProjectId } = body
   if (!title) return NextResponse.json({ error: "Title required" }, { status: 400 })
 
   // Create project with default columns
@@ -38,6 +38,7 @@ export async function POST(req: Request) {
       icon: icon || "📄",
       color: color || "#3b82f6",
       viewType: viewType || "kanban",
+      generatedProjectId: generatedProjectId || null,
       userId: payload.userId,
       workspaceId: workspaceId || null,
       folderId: folderId || null,

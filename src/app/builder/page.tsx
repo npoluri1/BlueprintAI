@@ -557,6 +557,8 @@ export default function BuilderPage() {
   const [fileContents, setFileContents] = useState<Record<string, string>>({})
   const [activeViewTab, setActiveViewTab] = useState<"files" | "preview" | "instructions" | "design" | "contact">("files")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -569,44 +571,48 @@ export default function BuilderPage() {
     }
   }, [previewUrl])
 
-  // Load project from ?project= query param (using location.search to avoid Suspense boundary requirement)
+  // Load project from ?project= or pre-fill input from ?input= query param
   useEffect(() => {
     if (!user) return
     const params = new URLSearchParams(window.location.search)
     const projectId = params.get("project")
-    if (!projectId) return
+    const inputText = params.get("input")
+    
+    if (projectId) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Loading project..." }])
 
-    setMessages(prev => [...prev, { role: "assistant", content: "Loading project..." }])
+      fetch(`/api/projects/${projectId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.id) return
+          const p: ProjectResult = {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            techStack: data.techStack || [],
+            structure: data.structure || [],
+            files: data.files || [],
+            createdAt: data.createdAt,
+          }
+          setProject(p)
+          const contents: Record<string, string> = {}
+          p.files.forEach((f: GeneratedFile) => { contents[f.path] = f.content })
+          setFileContents(contents)
+          setActiveFileTab(p.files[0]?.path || "")
+          setActiveViewTab("files")
+          setPreviewUrl(null)
 
-    fetch(`/api/projects/${projectId}`)
-      .then(r => r.json())
-      .then(data => {
-        if (!data.id) return
-        const p: ProjectResult = {
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          techStack: data.techStack || [],
-          structure: data.structure || [],
-          files: data.files || [],
-          createdAt: data.createdAt,
-        }
-        setProject(p)
-        const contents: Record<string, string> = {}
-        p.files.forEach((f: GeneratedFile) => { contents[f.path] = f.content })
-        setFileContents(contents)
-        setActiveFileTab(p.files[0]?.path || "")
-        setActiveViewTab("files")
-        setPreviewUrl(null)
-
-        setMessages([
-          { role: "assistant", content: `## ${p.title}\n\n${p.description}\n\n**Tech Stack:** ${p.techStack.join(", ")}\n\n**Structure:** ${(p.structure || []).length} files loaded\n\nThis project is ready to view! Download as ZIP or browse the files below.` },
-        ])
-      })
-      .catch(err => {
-        console.error("Failed to load project:", err)
-        setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: "Failed to load project. It may have been deleted or you may not have access." }])
-      })
+          setMessages([
+            { role: "assistant", content: `## ${p.title}\n\n${p.description}\n\n**Tech Stack:** ${p.techStack.join(", ")}\n\n**Structure:** ${(p.structure || []).length} files loaded\n\nThis project is ready to view! Download as ZIP or browse the files below.` },
+          ])
+        })
+        .catch(err => {
+          console.error("Failed to load project:", err)
+          setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: "Failed to load project. It may have been deleted or you may not have access." }])
+        })
+    } else if (inputText) {
+      setInput(decodeURIComponent(inputText))
+    }
   }, [user])
 
   const availableCategories = CATEGORIES[industry] || CATEGORIES.all
@@ -774,6 +780,27 @@ export default function BuilderPage() {
       document.body.removeChild(ta)
     }
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const saveToWorkspace = async () => {
+    if (!project || saved) return
+    setSaving(true)
+    try {
+      const res = await fetch("/api/projects-workspace", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: project.title,
+          description: project.description,
+          viewType: "kanban",
+          generatedProjectId: project.id,
+        }),
+      })
+      if (res.ok) {
+        setSaved(true)
+      }
+    } catch (err) { console.error("Save to workspace error:", err) }
+    setSaving(false)
   }
 
   const getProjectPreviewType = useCallback((techStack: string[]): { type: string; reason: string } => {
@@ -1372,7 +1399,7 @@ export default function BuilderPage() {
                         </div>
                       </div>
                     )}
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         onClick={handleExportZip}
                         disabled={exporting === "zip"}
@@ -1398,6 +1425,17 @@ export default function BuilderPage() {
                         className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500"
                       >
                         ▶ Run Preview
+                      </button>
+                      <button
+                        onClick={saveToWorkspace}
+                        disabled={saving || saved}
+                        className={`rounded-full px-4 py-2 text-xs font-medium text-white ${
+                          saved
+                            ? "bg-green-500 cursor-default"
+                            : "bg-blue-600 hover:bg-blue-500"
+                        } disabled:opacity-50`}
+                      >
+                        {saving ? "Saving..." : saved ? "✓ Saved to Workspace" : "Save to Workspace"}
                       </button>
                     </div>
                   </>

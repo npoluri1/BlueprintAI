@@ -1,24 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import Navbar from "@/components/Navbar";
 import ChatAssistant from "@/components/ChatAssistant";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "AppForge AI | Build Apps with AI",
-  description: "Describe your app idea and let AI build it for you. Create, generate, and deploy projects from natural language prompts.",
+  title: "BlueprintAI | AI-Powered Workspace",
+  description: "Create, collaborate, and manage projects with AI. A modern workspace for teams.",
 };
 
 export default function RootLayout({
@@ -27,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -55,7 +50,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-white text-zinc-900 min-h-screen transition-colors">
+      <body className="min-h-screen bg-white text-zinc-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
         <AuthProvider>
           <ThemeProvider>
             <Navbar />

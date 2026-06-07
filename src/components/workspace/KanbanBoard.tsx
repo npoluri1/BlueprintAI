@@ -11,7 +11,6 @@ import {
   useSensors,
   type DragStartEvent,
   type DragEndEvent,
-  type DragOverEvent,
 } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -55,11 +54,11 @@ function SortableTask({ task, onClick }: { task: Task; onClick: () => void }) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const priorityColors: Record<string, string> = {
-    low: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
-    medium: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    high: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    urgent: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  const priorityIndicator: Record<string, string> = {
+    low: "#9CA3AF",
+    medium: "#5048E5",
+    high: "#F59E0B",
+    urgent: "#EF4444",
   }
 
   return (
@@ -69,52 +68,66 @@ function SortableTask({ task, onClick }: { task: Task; onClick: () => void }) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="group cursor-pointer rounded-lg border border-zinc-200 bg-white p-3 shadow-sm transition hover:border-zinc-300 hover:shadow dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600"
+      className="taskade-task-card group relative"
     >
+      {/* Priority indicator line */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
+        style={{ backgroundColor: priorityIndicator[task.priority] || "#9CA3AF" }}
+      />
+
       {task.labels.length > 0 && (
-        <div className="mb-2 flex flex-wrap gap-1">
+        <div className="mb-1.5 flex flex-wrap gap-1">
           {task.labels.map(({ label }) => (
-            <span key={label.id} className="rounded px-1.5 py-0.5 text-[9px] font-medium text-white" style={{ backgroundColor: label.color }}>
+            <span key={label.id} className="taskade-badge text-white text-[10px]" style={{ backgroundColor: label.color }}>
               {label.name}
             </span>
           ))}
         </div>
       )}
 
-      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{task.title}</p>
+      <p className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>{task.title}</p>
 
       {task.description && (
-        <p className="mt-1 text-xs text-zinc-400 line-clamp-2">{task.description}</p>
+        <p className="mb-2 text-xs line-clamp-2" style={{ color: 'var(--muted)' }}>{task.description}</p>
       )}
 
-      <div className="mt-3 flex items-center justify-between">
-        {task.priority && (
-          <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium capitalize ${priorityColors[task.priority] || ""}`}>
-            {task.priority}
-          </span>
-        )}
-        <div className="flex items-center gap-2 text-[10px] text-zinc-400">
-          {task.dueDate && <span>{new Date(task.dueDate).toLocaleDateString()}</span>}
-          {task.assignee && <span className="truncate max-w-[60px]">{task.assignee.name}</span>}
-          {task._count.comments > 0 && <span>💬 {task._count.comments}</span>}
+      <div className="flex items-center justify-between gap-2 mt-2">
+        <div className="flex items-center gap-2 text-[11px]" style={{ color: 'var(--muted-light)' }}>
+          {task.dueDate && (
+            <span className="flex items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+              {new Date(task.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </span>
+          )}
+          {task.assignee && (
+            <span className="flex items-center gap-1 max-w-[80px] truncate">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 10-16 0" /></svg>
+              {task.assignee.name}
+            </span>
+          )}
+          {task._count.comments > 0 && (
+            <span className="flex items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+              {task._count.comments}
+            </span>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-function ColumnHeader({ column, onAddTask }: { column: Column; onAddTask: () => void }) {
+function ColumnSection({ column, onAddTask }: { column: Column; onAddTask: () => void }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: column.color }} />
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{column.title}</h3>
-        <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-          {column.tasks.length}
-        </span>
+    <div className="mb-3 flex items-center justify-between px-1">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: column.color }} />
+        <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{column.title}</h3>
+        <span className="taskade-column-count text-[11px]">{column.tasks.length}</span>
       </div>
-      <button onClick={onAddTask} className="text-zinc-400 hover:text-blue-500">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14m-7-7h14" /></svg>
+      <button onClick={onAddTask} className="taskade-btn-ghost h-7 w-7 p-0 flex items-center justify-center shrink-0" title="Add task">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
       </button>
     </div>
   )
@@ -134,7 +147,7 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
   const columns = project.columns || []
   const allTaskIds = useMemo(() => columns.flatMap(c => c.tasks.map(t => t.id)), [columns])
 
-  const  findColumnByTaskId = useCallback((taskId: string) => {
+  const findColumnByTaskId = useCallback((taskId: string) => {
     return columns.find(c => c.tasks.some(t => t.id === taskId))
   }, [columns])
 
@@ -153,8 +166,7 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
     let targetColumn: Column | undefined
     let newPosition: number
 
-    // Check if over is a task or a column
-    const overTask = columns.flatMap(c => c.tasks).find(t => t.id === String(over.id))
+    const overTask = columns.flatMap(c => c.tasks).find(t => t.id === over.id)
     if (overTask) {
       targetColumn = findColumnByTaskId(String(over.id))
       newPosition = overTask.position
@@ -165,7 +177,6 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
 
     if (!targetColumn) return
 
-    // Update via API
     await fetch("/api/projects-workspace/0/tasks", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -190,7 +201,7 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
   const activeTask = activeId ? columns.flatMap(c => c.tasks).find(t => t.id === activeId) : null
 
   return (
-    <div className="flex h-full gap-4 overflow-x-auto p-4">
+    <div className="flex h-full gap-4 overflow-x-auto p-5" style={{ background: 'var(--background)' }}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -198,14 +209,14 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
         onDragEnd={handleDragEnd}
       >
         {columns.map(column => (
-          <div key={column.id} className="flex w-72 shrink-0 flex-col rounded-xl bg-zinc-50 dark:bg-zinc-900">
-            <div className="px-3 pt-3">
-              <ColumnHeader column={column} onAddTask={() => setAddingToColumn(column.id)} />
+          <div key={column.id} className="taskade-column">
+            <div>
+              <ColumnSection column={column} onAddTask={() => setAddingToColumn(column.id)} />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-3 pb-3">
+            <div className="flex-1 overflow-y-auto px-1 pb-2">
               <SortableContext items={column.tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   {column.tasks.map(task => (
                     <SortableTask key={task.id} task={task} onClick={() => setSelectedTask(task)} />
                   ))}
@@ -213,18 +224,18 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
               </SortableContext>
 
               {addingToColumn === column.id && (
-                <div className="mt-2">
+                <div className="mt-2 animate-slide-in-up">
                   <input
                     value={newTaskTitle}
                     onChange={e => setNewTaskTitle(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter") addTask(column.id); if (e.key === "Escape") { setAddingToColumn(null); setNewTaskTitle("") } }}
                     placeholder="Task title..."
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-900 dark:border-zinc-700 dark:bg-zinc-900"
+                    className="taskade-input text-sm"
                     autoFocus
                   />
-                  <div className="mt-1 flex gap-1">
-                    <button onClick={() => addTask(column.id)} className="rounded bg-zinc-900 px-2 py-1 text-xs text-white dark:bg-zinc-100 dark:text-zinc-900">Add</button>
-                    <button onClick={() => { setAddingToColumn(null); setNewTaskTitle("") }} className="rounded px-2 py-1 text-xs text-zinc-500 hover:text-zinc-700">Cancel</button>
+                  <div className="mt-1.5 flex gap-1.5">
+                    <button onClick={() => addTask(column.id)} className="taskade-btn-primary text-xs py-1 px-3">Add</button>
+                    <button onClick={() => { setAddingToColumn(null); setNewTaskTitle("") }} className="taskade-btn-ghost text-xs py-1">Cancel</button>
                   </div>
                 </div>
               )}
@@ -234,7 +245,7 @@ export function KanbanBoard({ project, onUpdate }: { project: ProjectData; onUpd
 
         <DragOverlay>
           {activeTask ? (
-            <div className="rounded-lg border border-zinc-300 bg-white p-3 shadow-lg dark:border-zinc-600 dark:bg-zinc-900">
+            <div className="taskade-task-card opacity-90" style={{ width: 288, transform: 'rotate(3deg)' }}>
               <p className="text-sm font-medium">{activeTask.title}</p>
             </div>
           ) : null}

@@ -1,37 +1,85 @@
 @import "tailwindcss";
 
+/* ============================================================
+   TASKADE DESIGN SYSTEM
+   Primary: #5048E5 (vibrant violet-blue)
+   Font: Inter, system-ui, -apple-system, sans-serif
+   Border radius: 4-6px buttons/inputs, 8-12px cards, 12-16px modals
+   Shadows: Subtle soft shadows (0 1px 3px rgba(0,0,0,0.1))
+   ============================================================ */
+
 /* Class-based dark mode for Tailwind v4 */
-/* This makes the `dark:` variant match when `.dark` is on the <html> element */
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
-  --foreground: #0a0a0a;
+  --foreground: #111827;
+  --primary: #5048E5;
+  --primary-light: #7C73FF;
+  --primary-dark: #3B35B8;
+  --primary-bg: #F5F3FF;
+  --sidebar-bg: #F9FAFB;
+  --sidebar-hover: #F3F4F6;
+  --sidebar-active: #EEF2FF;
+  --card-bg: #ffffff;
+  --card-border: #E5E7EB;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --muted: #6B7280;
+  --muted-light: #9CA3AF;
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #0A0A0F;
+  --foreground: #EDEDEE;
+  --primary: #7C73FF;
+  --primary-light: #9B95FF;
+  --primary-dark: #5048E5;
+  --primary-bg: #1A1A2E;
+  --sidebar-bg: #111118;
+  --sidebar-hover: #1A1A22;
+  --sidebar-active: #1A1A2E;
+  --card-bg: #14141A;
+  --card-border: #2A2A35;
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --card-shadow-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --muted: #9CA3AF;
+  --muted-light: #6B7280;
+  --border: #2A2A35;
+  --border-light: #1F1F28;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-light: var(--primary-light);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-bg: var(--primary-bg);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Smooth theme transitions */
+/* Apply to html */
 html {
   scroll-behavior: smooth;
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Smooth transitions for theme-aware elements */
@@ -41,7 +89,7 @@ body {
   transition-duration: 200ms;
 }
 
-/* Exclude transitions from elements that shouldn't animate */
+/* No theme transition helper */
 .no-theme-transition,
 .no-theme-transition *,
 .no-theme-transition::before,
@@ -49,15 +97,176 @@ body {
   transition: none !important;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ===== Taskade Component Styles ===== */
+
+/* Sidebar styles */
+.taskade-sidebar {
+  @apply border-r border-zinc-200 dark:border-zinc-800;
+  background: var(--sidebar-bg);
+}
+
+.taskade-sidebar-item {
+  @apply flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-colors;
+  color: var(--muted);
+}
+
+.taskade-sidebar-item:hover {
+  background: var(--sidebar-hover);
+  color: var(--foreground);
+}
+
+.taskade-sidebar-item-active {
+  background: var(--sidebar-active);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Card styles */
+.taskade-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+}
+
+.taskade-card:hover {
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* Button styles */
+.taskade-btn-primary {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors;
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.taskade-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.taskade-btn-ghost {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors;
+  background: transparent;
+  color: var(--muted);
+}
+
+.taskade-btn-ghost:hover {
+  background: var(--sidebar-hover);
+  color: var(--foreground);
+}
+
+/* Input styles */
+.taskade-input {
+  @apply w-full rounded-md border px-3 py-2 text-sm outline-none transition-colors;
+  border-color: var(--card-border);
+  background: var(--card-bg);
+  color: var(--foreground);
+}
+
+.taskade-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(80, 72, 229, 0.1);
+}
+
+/* Select styles */
+.taskade-select {
+  @apply w-full appearance-none rounded-md border px-3 py-2 pr-8 text-sm outline-none transition-colors;
+  border-color: var(--card-border);
+  background: var(--card-bg);
+  color: var(--foreground);
+}
+
+.taskade-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(80, 72, 229, 0.1);
+}
+
+/* Badge / Label styles */
+.taskade-badge {
+  @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+}
+
+/* Column / Kanban styles */
+.taskade-column {
+  @apply flex w-72 shrink-0 flex-col rounded-xl;
+  background: var(--sidebar-bg);
+}
+
+.taskade-column-header {
+  @apply flex items-center justify-between px-3 pt-3 pb-2;
+}
+
+.taskade-column-title {
+  @apply text-sm font-semibold;
+  color: var(--foreground);
+}
+
+.taskade-column-count {
+  @apply inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-xs font-medium;
+  background: var(--border-light);
+  color: var(--muted);
+}
+
+/* Task card */
+.taskade-task-card {
+  @apply cursor-pointer rounded-lg border bg-white p-3 shadow-sm transition-all dark:bg-zinc-900;
+  border-color: var(--card-border);
+}
+
+.taskade-task-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--card-shadow-hover);
+}
+
+/* Top bar */
+.taskade-topbar {
+  @apply flex items-center gap-3 border-b px-4 py-2;
+  border-color: var(--card-border);
+  background: var(--card-bg);
+}
+
+/* View switcher */
+.taskade-view-switcher {
+  @apply flex items-center gap-0.5 rounded-lg p-0.5;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--card-border);
+}
+
+.taskade-view-btn {
+  @apply flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors;
+  color: var(--muted);
+}
+
+.taskade-view-btn:hover {
+  background: var(--sidebar-hover);
+  color: var(--foreground);
+}
+
+.taskade-view-btn-active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+/* Dialog / Modal */
+.taskade-modal-overlay {
+  @apply fixed inset-0 z-50 bg-black/50 backdrop-blur-sm;
+}
+
+.taskade-modal {
+  @apply fixed right-0 top-0 z-50 h-full w-full max-w-lg border-l shadow-2xl;
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
@@ -70,56 +279,21 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
-}
-
-.animate-fade-in-up-delay-1 {
-  animation: fadeInUp 0.6s ease-out 0.1s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-2 {
-  animation: fadeInUp 0.6s ease-out 0.2s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-3 {
-  animation: fadeInUp 0.6s ease-out 0.3s forwards;
-  opacity: 0;
+.animate-slide-in-up {
+  animation: slideInUp 0.25s ease-out forwards;
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
+  animation: scaleIn 0.2s ease-out forwards;
 }
 
-/* Responsive container helpers */
-@media (min-width: 640px) {
-  .container-responsive {
-    max-width: 640px;
-  }
-}
-@media (min-width: 768px) {
-  .container-responsive {
-    max-width: 768px;
-  }
-}
-@media (min-width: 1024px) {
-  .container-responsive {
-    max-width: 1024px;
-  }
-}
-@media (min-width: 1280px) {
-  .container-responsive {
-    max-width: 1280px;
-  }
-}
-@media (min-width: 1536px) {
-  .container-responsive {
-    max-width: 1440px;
-  }
+/* Drag and drop placeholder */
+.taskade-drag-placeholder {
+  @apply rounded-lg border-2 border-dashed;
+  border-color: var(--primary);
+  background: rgba(80, 72, 229, 0.05);
 }

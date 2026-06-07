@@ -67,28 +67,28 @@ export function CalendarView({ project }: { project: ProjectData }) {
   return (
     <div className="flex h-full flex-col p-4">
       {/* Month Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-bold capitalize">
+      <div className="mb-4 flex items-center justify-between px-1">
+        <h2 className="text-lg font-bold capitalize" style={{ color: 'var(--foreground)' }}>
           {new Date(year, month).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
         </h2>
-        <div className="flex gap-2">
-          <button onClick={prevMonth} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">&larr;</button>
-          <button onClick={() => setCurrentDate(new Date())} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">Today</button>
-          <button onClick={nextMonth} className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900">&rarr;</button>
+        <div className="flex gap-1.5">
+          <button onClick={prevMonth} className="taskade-btn-ghost text-xs py-1.5 px-2">&larr;</button>
+          <button onClick={() => setCurrentDate(new Date())} className="taskade-btn-ghost text-xs py-1.5 px-2">Today</button>
+          <button onClick={nextMonth} className="taskade-btn-ghost text-xs py-1.5 px-2">&rarr;</button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-px rounded-xl border border-zinc-200 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-700">
+      <div className="grid grid-cols-7 gap-px rounded-xl border" style={{ borderColor: 'var(--card-border)', backgroundColor: 'var(--card-border)' }}>
         {dayNames.map(d => (
-          <div key={d} className="bg-zinc-50 px-2 py-2 text-center text-xs font-semibold text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400">
+          <div key={d} className="px-2 py-2 text-center text-xs font-semibold" style={{ background: 'var(--sidebar-bg)', color: 'var(--muted)' }}>
             {d}
           </div>
         ))}
 
         {/* Empty cells for days before month starts */}
         {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-          <div key={`empty-${i}`} className="min-h-[100px] bg-white dark:bg-zinc-900" />
+          <div key={`empty-${i}`} className="min-h-[100px]" style={{ background: 'var(--card-bg)' }} />
         ))}
 
         {/* Day cells */}
@@ -102,13 +102,18 @@ export function CalendarView({ project }: { project: ProjectData }) {
             <div
               key={day}
               onClick={() => setSelectedDay(date)}
-              className={`min-h-[100px] cursor-pointer bg-white p-1.5 transition hover:bg-zinc-50 dark:bg-zinc-900 dark:hover:bg-zinc-800 ${
-                selectedDay?.toDateString() === dateKey ? "ring-2 ring-blue-500" : ""
+              className={`min-h-[100px] cursor-pointer p-1.5 transition-colors ${
+                selectedDay?.toDateString() === dateKey ? "ring-2" : ""
               }`}
+              style={{ background: 'var(--card-bg)', '--tw-ring-color': 'var(--primary)' } as React.CSSProperties}
             >
               <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
-                isToday(day) ? "bg-blue-600 text-white font-bold" : "text-zinc-600 dark:text-zinc-400"
-              }`}>
+                isToday(day) ? "text-white font-bold" : ""
+              }`}
+                style={{
+                  background: isToday(day) ? 'var(--primary)' : 'transparent',
+                  color: isToday(day) ? '#ffffff' : 'var(--muted)',
+                }}>
                 {day}
               </span>
               <div className="mt-1 space-y-0.5">
@@ -128,8 +133,8 @@ export function CalendarView({ project }: { project: ProjectData }) {
 
       {/* Selected Day Tasks */}
       {selectedDay && (
-        <div className="mt-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-          <h3 className="text-sm font-semibold mb-3">
+        <div className="mt-4 rounded-xl border p-4" style={{ borderColor: 'var(--card-border)', background: 'var(--card-bg)' }}>
+          <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>
             Tasks for {selectedDay.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
           </h3>
           {(() => {

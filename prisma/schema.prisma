@@ -69,6 +69,7 @@ model Project_Workspace {
   workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   folderId    String?
   folder      Folder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  generatedProjectId String? // Links to the Project model for AI-generated projects
   userId      String
   user        User       @relation(fields: [userId], references: [id])
   columns     Column[]
